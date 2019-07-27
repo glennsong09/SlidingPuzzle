@@ -3,9 +3,15 @@ package com.muninn.sliding_puzzle;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -22,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
         Button buttonStart = findViewById(R.id.startButton);
         buttonStart.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this, EasyBoard.class));
+                startActivity(new Intent(MainActivity.this, SelectScreen.class));
             } });
     }
 
@@ -30,7 +36,34 @@ public class MainActivity extends AppCompatActivity {
         Button buttonUpload = findViewById(R.id.uploadButton);
         buttonUpload.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                //Needs to be able to select picture and use that to start game
+
+
+                Intent pickPhoto = new Intent(Intent.ACTION_PICK,
+                        android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                startActivityForResult(pickPhoto , 1);
             } });
     }
+
+    /*
+    public void drawableToMove() {
+        Bitmap bitmap = BitmapFactory.decodeResource(getResources(), allImages.get(currentPic));
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
+        byte[] b = baos.toByteArray();
+
+        String fileName = "SomeName.png";
+        try {
+            FileOutputStream fileOutStream = openFileOutput(fileName, MODE_PRIVATE);
+            fileOutStream.write(b);
+            fileOutStream.close();
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+
+        Intent intent = new Intent(this, GameScreen.class);
+        intent.putExtra("picname", fileName);
+
+        startActivity(intent);
+    }
+    */
 }

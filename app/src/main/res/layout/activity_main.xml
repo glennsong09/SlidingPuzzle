@@ -20,7 +20,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="#4D3E6D" />
+        android:background="#4D3E6D" />
 
     <ImageView
         android:id="@+id/signBackground"
