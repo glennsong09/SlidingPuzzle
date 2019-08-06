@@ -6,7 +6,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -16,8 +18,11 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 
 public class SelectScreen extends AppCompatActivity {
@@ -28,6 +33,8 @@ public class SelectScreen extends AppCompatActivity {
     ImageView screen;
     ArrayList<Integer> allImages = new ArrayList<>();
     int currentPic = 0;
+    public static final int IMAGE_GALLERY_REQUEST = 20;
+    public static final int CAMERA_REQUEST_CODE = 228;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,15 +45,14 @@ public class SelectScreen extends AppCompatActivity {
         allImages.add(R.drawable.sketch2);
         allImages.add(R.drawable.sketch3);
         screen = (ImageView) findViewById(R.id.pictureDisplay);
-
         screen.setImageResource(allImages.get(0));
-
         spinner = (Spinner)findViewById(R.id.rowColSelectSpinner);
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(SelectScreen.this,
                 android.R.layout.simple_spinner_item, paths);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+
             @Override
             public void onItemSelected(AdapterView<?> parent, View view,
                                        int position, long id) {
@@ -78,10 +84,8 @@ public class SelectScreen extends AppCompatActivity {
                     case 8:
                         pieceNum = 100;
                         break;
-
                 }
             }
-
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
                 pieceNum = 25;
@@ -91,6 +95,20 @@ public class SelectScreen extends AppCompatActivity {
         configureNextButton();
         configureBackButton();
         configureSelectButton();
+        configureUploadButton();
+    }
+
+    public void configureUploadButton() {
+        Button buttonUpload = findViewById(R.id.uploadButton);
+        buttonUpload.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
+                File pictureDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+                String pictureDirectoryPath = pictureDirectory.getPath();
+                Uri data = Uri.parse(pictureDirectoryPath);
+                photoPickerIntent.setDataAndType(data, "image/*");
+                startActivityForResult(photoPickerIntent, IMAGE_GALLERY_REQUEST);
+            } });
     }
 
     public void configureNextButton() {
@@ -141,7 +159,7 @@ public class SelectScreen extends AppCompatActivity {
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
         byte[] b = baos.toByteArray();
 
-        String fileName = "SomeName.png";
+        String fileName = "ToMove.png";
         try {
             FileOutputStream fileOutStream = openFileOutput(fileName, MODE_PRIVATE);
             fileOutStream.write(b);
@@ -149,11 +167,50 @@ public class SelectScreen extends AppCompatActivity {
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
-
         Intent intent = new Intent(this, GameScreen.class);
-        intent.putExtra("picname", fileName);
-        intent.putExtra("RowColNumber", pieceNum);
-
+        intent.putExtra("movedPic", fileName);
+        intent.putExtra("rowColNumber", pieceNum);
         startActivity(intent);
+    }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK) {
+            if (requestCode == CAMERA_REQUEST_CODE) {
+                Toast.makeText(this, "Image Saved.", Toast.LENGTH_LONG).show();
+            }
+            if (requestCode == IMAGE_GALLERY_REQUEST) {
+                Uri imageUri = data.getData();
+                InputStream inputStream;
+                try {
+                    inputStream = getContentResolver().openInputStream(imageUri);
+                    Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
+                    byte[] b = baos.toByteArray();
+
+                    String fileName = "ToMove.png";
+                    try {
+                        FileOutputStream fileOutStream = openFileOutput(fileName, MODE_PRIVATE);
+                        fileOutStream.write(b);
+                        fileOutStream.close();
+                    } catch (IOException ioe) {
+                        ioe.printStackTrace();
+                    }
+
+                    Intent intent = new Intent(this, GameScreen.class);
+                    intent.putExtra("rowColNumber", pieceNum);
+                    intent.putExtra("movedPic", fileName);
+
+                    startActivity(intent);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                    Toast.makeText(this, "Unable to open image", Toast.LENGTH_LONG).show();
+                }
+            }
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
+            Uri imageUri = getIntent().getData();
+            screen.setImageURI(imageUri);
+        }
     }
 }

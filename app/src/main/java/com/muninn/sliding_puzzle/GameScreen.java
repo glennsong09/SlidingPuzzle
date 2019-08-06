@@ -7,6 +7,9 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -30,9 +33,11 @@ import java.util.Collections;
 
 public class GameScreen extends AppCompatActivity {
 
-    ArrayList<Integer> correctOrientation;
-    ArrayList<Integer> boardOrientation;
+    ArrayList<Bitmap> chunkedImages;
+    ArrayList<Integer> rowNums;
+    ArrayList<Integer> colNums;
     ArrayList<ImageView> allPieces;
+    int[][] scrambledBoard;
     ImageView[][] board;
     TableLayout table;
     int pieceNum;
@@ -46,16 +51,19 @@ public class GameScreen extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game_screen);
         Intent intent = getIntent();
-        pieceNum = intent.getIntExtra("RowColNumber", 0);
+        pieceNum = intent.getIntExtra("rowColNumber", 0);
         rowColLimit = (int) Math.sqrt(pieceNum);
         allPieces = new ArrayList<>();
+        rowNums = new ArrayList<>();
+        colNums = new ArrayList<>();
+        scrambledBoard = new int[rowColLimit][rowColLimit];
         table = (TableLayout) findViewById(R.id.tableLO);
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         tableWidth = displayMetrics.widthPixels - 160;
 
         Bundle extras = getIntent().getExtras();
-        String fileName = extras.getString("picname");
+        String fileName = extras.getString("movedPic");
         File filePath = getFileStreamPath(fileName);
         Bitmap bmp = BitmapFactory.decodeFile(filePath.toString());
         bmp = centerCrop(bmp);
@@ -72,10 +80,10 @@ public class GameScreen extends AppCompatActivity {
         });
     }
 
-    private void splitImage(Bitmap bitmap, int chunkNumbers) {
+    public void splitImage(Bitmap bitmap, int chunkNumbers) {
         int rows, cols;
         int chunkHeight, chunkWidth;
-        ArrayList<Bitmap> chunkedImages = new ArrayList<Bitmap>(chunkNumbers);
+        chunkedImages = new ArrayList<Bitmap>(chunkNumbers);
         Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, bitmap.getWidth(), bitmap.getHeight(), true);
         rows = cols = (int) Math.sqrt(chunkNumbers);
         chunkHeight = bitmap.getHeight() / rows;
@@ -94,26 +102,44 @@ public class GameScreen extends AppCompatActivity {
         for (int i = 0; i < chunkedImages.size(); i++) {
             ImageView mImg = new ImageView(this);
             mImg.setImageBitmap(chunkedImages.get(i));
+            addBorder(mImg);
             allPieces.add(mImg);
         }
-        Collections.shuffle(allPieces); //this scrambles the board
+        emptyRowNum = rowColLimit - 1;
+        emptyColNum = rowColLimit - 1;
+
+        generateSolvablePuzzle();
         showAllPieces();
         makeInteractable();
 
     }
 
-    private void makeInteractable() {
-        int count = 0;
+    public void addBorder(ImageView v) {
+        BitmapDrawable drawable = (BitmapDrawable) v.getDrawable();
+        Bitmap bitmap = drawable.getBitmap();
+        bitmap = addBlackBorder(bitmap, 3);
+        v.setImageBitmap(bitmap);
+
+    }
+
+    private Bitmap addBlackBorder(Bitmap bmp, int borderSize) {
+        Bitmap bmpWithBorder = Bitmap.createBitmap(bmp.getWidth() + borderSize * 2, bmp.getHeight() + borderSize * 2, bmp.getConfig());
+        Canvas canvas = new Canvas(bmpWithBorder);
+        canvas.drawColor(Color.BLACK);
+        canvas.drawBitmap(bmp, borderSize, borderSize, null);
+        return bmpWithBorder;
+    }
+
+    public void makeInteractable() {
         board = new ImageView[rowColLimit][rowColLimit];
         for (int i = 0; i < rowColLimit; i++) {
             for (int j = 0; j < rowColLimit; j++) {
-                board[i][j] = allPieces.get(count);
-                count++;
+                board[i][j] = allPieces.get(scrambledBoard[i][j]);
             }
         }
 
         for (int i = 0; i < board.length; i++) {
-            for (int j = 0; j <board[0].length; j++) {
+            for (int j = 0; j < board[0].length; j++) {
                 board[i][j].isClickable();
                 board[i][j].setOnClickListener(new View.OnClickListener() {
                     public void onClick(View v) {
@@ -129,6 +155,7 @@ public class GameScreen extends AppCompatActivity {
                         }
                         if (checkIfNextToEmptySpace(row, col)) {
                             movePiece(v, row, col);
+                            checkIfSolved();
                         } else {
                             Context context = getApplicationContext();
                             CharSequence text = "Can't move this piece!";
@@ -140,21 +167,34 @@ public class GameScreen extends AppCompatActivity {
                 });
             }
         }
-        board[rowColLimit - 1][rowColLimit - 1].setVisibility(View.INVISIBLE); //set to empty somehow
-        emptyRowNum = rowColLimit - 1;
-        emptyColNum = rowColLimit - 1;
+        board[emptyRowNum][emptyColNum].setVisibility(View.INVISIBLE); //set to empty somehow
     }
 
-    private void movePiece(View v, int row, int col) {
+    public void movePiece(View v, int row, int col) {
         Bitmap bm = loadBitmapFromView(v);
         board[emptyRowNum][emptyColNum].setImageBitmap(bm);
         board[emptyRowNum][emptyColNum].setVisibility(View.VISIBLE);
+
+        int temp = scrambledBoard[emptyRowNum][emptyColNum];
+        scrambledBoard[emptyRowNum][emptyColNum] = scrambledBoard[row][col];
+        scrambledBoard[row][col] = temp;
+
         emptyRowNum = row;
         emptyColNum = col;
+
         board[emptyRowNum][emptyColNum].setVisibility(View.INVISIBLE);
     }
 
-    private boolean checkIfNextToEmptySpace(int row, int col) {
+    public void movePiece(int row, int col) {
+        int temp = scrambledBoard[emptyRowNum][emptyColNum];
+        scrambledBoard[emptyRowNum][emptyColNum] = scrambledBoard[row][col];
+        scrambledBoard[row][col] = temp;
+
+        emptyRowNum = row;
+        emptyColNum = col;
+    }
+
+    public boolean checkIfNextToEmptySpace(int row, int col) {
         if (((row == emptyRowNum - 1) && (col == emptyColNum))
                 || ((row == emptyRowNum + 1) && (col == emptyColNum))
                 || ((row == emptyRowNum) && (col == emptyColNum - 1))
@@ -164,13 +204,13 @@ public class GameScreen extends AppCompatActivity {
         return false;
     }
 
-    private void showAllPieces() {
+    public void showAllPieces() {
         int count = 0;
         TableLayout table = (TableLayout) findViewById(R.id.tableLO);
         for (int i = 0; i < rowColLimit; i++) {
             TableRow tr = new TableRow(this);
             for (int j = 0; j < rowColLimit; j++) {
-                ImageView view = allPieces.get(count);
+                ImageView view = allPieces.get(scrambledBoard[i][j]);
                 view.setAdjustViewBounds(false);
                 view.setScaleType(ImageView.ScaleType.CENTER_CROP);
                 tr.addView(view);
@@ -180,7 +220,7 @@ public class GameScreen extends AppCompatActivity {
         }
     }
 
-    private Bitmap centerCrop(Bitmap srcBmp) {
+    public Bitmap centerCrop(Bitmap srcBmp) {
         Bitmap dstBmp = null;
         if (srcBmp.getWidth() >= srcBmp.getHeight()){
             dstBmp = Bitmap.createBitmap(srcBmp, srcBmp.getWidth()/2 - srcBmp.getHeight()/2,
@@ -201,4 +241,65 @@ public class GameScreen extends AppCompatActivity {
         v.draw(c);
         return b;
     }
+
+    public void setInitialBoard() {
+        int count = 0;
+        for (int i = 0; i < rowColLimit; i++) {
+            for (int j = 0; j < rowColLimit; j++) {
+                scrambledBoard[i][j] = count;
+                count++;
+            }
+        }
+    }
+
+    public boolean checkIfSolved() {
+        int var = 0;
+        for (int i = 0; i < rowColLimit; i++) {
+            for (int j = 0; j < rowColLimit; j++) {
+                if (scrambledBoard[i][j] != var) {
+                    return false;
+                }
+                var++;
+            }
+        }
+        Context context = getApplicationContext();
+        CharSequence text = "Congratulations! You solved the puzzle!";
+        int duration = Toast.LENGTH_SHORT;
+        Toast toast = Toast.makeText(context, text, duration);
+        toast.show();
+        return true;
+    }
+
+    public boolean findAllMoveablePieces(int row, int col) {
+        if (((row == emptyRowNum - 1) && (col == emptyColNum))
+                || ((row == emptyRowNum + 1) && (col == emptyColNum))
+                || ((row == emptyRowNum) && (col == emptyColNum - 1))
+                || ((row == emptyRowNum) && (col == emptyColNum + 1))) {
+            return true;
+        }
+        return false;
+    }
+
+    public void generateSolvablePuzzle() {
+        int count = 0;
+        setInitialBoard();
+
+        while (count < 500) {
+            for (int i = 0; i < rowColLimit; i++) {
+                for (int j = 0; j < rowColLimit; j++) {
+                    if (findAllMoveablePieces(i, j)) {
+                        rowNums.add(i);
+                        colNums.add(j);
+                    }
+                }
+            }
+            int randNum = (int) (Math.random() * (rowNums.size()));
+            movePiece(rowNums.get(randNum), colNums.get(randNum));
+            rowNums.clear();
+            colNums.clear();
+            count++;
+        }
+    }
+
+
 }

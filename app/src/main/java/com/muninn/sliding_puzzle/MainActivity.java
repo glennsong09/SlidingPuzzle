@@ -5,23 +5,34 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.MediaScannerConnection;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
+
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         configureStartButton();
-        configureUploadButton();
     }
 
     public void configureStartButton() {
@@ -31,39 +42,4 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this, SelectScreen.class));
             } });
     }
-
-    public void configureUploadButton() {
-        Button buttonUpload = findViewById(R.id.uploadButton);
-        buttonUpload.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-
-
-                Intent pickPhoto = new Intent(Intent.ACTION_PICK,
-                        android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                startActivityForResult(pickPhoto , 1);
-            } });
-    }
-
-    /*
-    public void drawableToMove() {
-        Bitmap bitmap = BitmapFactory.decodeResource(getResources(), allImages.get(currentPic));
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
-        byte[] b = baos.toByteArray();
-
-        String fileName = "SomeName.png";
-        try {
-            FileOutputStream fileOutStream = openFileOutput(fileName, MODE_PRIVATE);
-            fileOutStream.write(b);
-            fileOutStream.close();
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-        }
-
-        Intent intent = new Intent(this, GameScreen.class);
-        intent.putExtra("picname", fileName);
-
-        startActivity(intent);
-    }
-    */
 }
