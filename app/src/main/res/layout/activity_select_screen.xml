@@ -41,14 +41,14 @@
         app:layout_constraintHorizontal_bias="0.492"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.294" />
+        app:layout_constraintVertical_bias="0.253" />
 
     <Button
         android:id="@+id/backButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="60dp"
-        android:layout_marginLeft="60dp"
+        android:layout_marginStart="40dp"
+        android:layout_marginLeft="40dp"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
         android:text="back
@@ -63,8 +63,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:layout_marginEnd="60dp"
-        android:layout_marginRight="60dp"
+        android:layout_marginEnd="44dp"
+        android:layout_marginRight="44dp"
         android:layout_marginBottom="8dp"
         android:text="next"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -85,7 +85,7 @@
         android:text="select"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/forwardButton"
-        app:layout_constraintHorizontal_bias="0.454"
+        app:layout_constraintHorizontal_bias="0.531"
         app:layout_constraintStart_toEndOf="@+id/backButton"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.944" />
@@ -106,14 +106,14 @@
         app:layout_constraintHorizontal_bias="0.495"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/pictureDisplay"
-        app:layout_constraintVertical_bias="0.695" />
+        app:layout_constraintVertical_bias="0.578" />
 
     <Spinner
         android:id="@+id/rowColSelectSpinner"
-        android:layout_width="102dp"
-        android:layout_height="43dp"
-        android:layout_marginEnd="36dp"
-        android:layout_marginRight="36dp"
+        android:layout_width="137dp"
+        android:layout_height="45dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginRight="12dp"
         app:layout_constraintBottom_toBottomOf="@+id/spinnerBackground"
         app:layout_constraintEnd_toEndOf="@+id/spinnerBackground"
         app:layout_constraintTop_toTopOf="@+id/spinnerBackground" />
@@ -130,9 +130,10 @@
         android:textSize="20dp"
         app:layout_constraintBottom_toBottomOf="@+id/spinnerBackground"
         app:layout_constraintEnd_toStartOf="@+id/rowColSelectSpinner"
-        app:layout_constraintHorizontal_bias="0.428"
+        app:layout_constraintHorizontal_bias="0.271"
         app:layout_constraintStart_toStartOf="@+id/spinnerBackground"
-        app:layout_constraintTop_toTopOf="@+id/spinnerBackground" />
+        app:layout_constraintTop_toTopOf="@+id/spinnerBackground"
+        app:layout_constraintVertical_bias="0.476" />
 
     <Button
         android:id="@+id/uploadButton"
@@ -146,10 +147,10 @@
         android:layout_marginBottom="8dp"
         android:text="upload picture"
         app:layout_constraintBottom_toTopOf="@+id/pictureDisplay"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.859"
+        app:layout_constraintEnd_toEndOf="@+id/pictureDisplay"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/backgroundColor"
-        app:layout_constraintVertical_bias="0.868" />
+        app:layout_constraintVertical_bias="0.888" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

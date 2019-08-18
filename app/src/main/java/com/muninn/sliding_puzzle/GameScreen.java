@@ -10,6 +10,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -30,6 +31,8 @@ import android.widget.Toast;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+
+import static android.graphics.Bitmap.Config.ARGB_8888;
 
 public class GameScreen extends AppCompatActivity {
 
@@ -60,7 +63,7 @@ public class GameScreen extends AppCompatActivity {
         table = (TableLayout) findViewById(R.id.tableLO);
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        tableWidth = displayMetrics.widthPixels - 160;
+        tableWidth = displayMetrics.widthPixels - 16;
 
         Bundle extras = getIntent().getExtras();
         String fileName = extras.getString("movedPic");
@@ -94,6 +97,7 @@ public class GameScreen extends AppCompatActivity {
             for (int y = 0; y < cols; y++) {
                 Bitmap tmpImage = Bitmap.createBitmap(scaledBitmap, xCoord, yCoord, chunkWidth, chunkHeight);
                 tmpImage = Bitmap.createScaledBitmap(tmpImage, tableWidth / rowColLimit, tableWidth / rowColLimit, true);
+                tmpImage = addBlackBorder(tmpImage, 2);
                 chunkedImages.add(tmpImage);
                 xCoord += chunkWidth;
             }
@@ -102,7 +106,6 @@ public class GameScreen extends AppCompatActivity {
         for (int i = 0; i < chunkedImages.size(); i++) {
             ImageView mImg = new ImageView(this);
             mImg.setImageBitmap(chunkedImages.get(i));
-            addBorder(mImg);
             allPieces.add(mImg);
         }
         emptyRowNum = rowColLimit - 1;
@@ -111,23 +114,38 @@ public class GameScreen extends AppCompatActivity {
         generateSolvablePuzzle();
         showAllPieces();
         makeInteractable();
-
-    }
-
-    public void addBorder(ImageView v) {
-        BitmapDrawable drawable = (BitmapDrawable) v.getDrawable();
-        Bitmap bitmap = drawable.getBitmap();
-        bitmap = addBlackBorder(bitmap, 3);
-        v.setImageBitmap(bitmap);
-
     }
 
     private Bitmap addBlackBorder(Bitmap bmp, int borderSize) {
-        Bitmap bmpWithBorder = Bitmap.createBitmap(bmp.getWidth() + borderSize * 2, bmp.getHeight() + borderSize * 2, bmp.getConfig());
+        Bitmap bmpWithBorder = Bitmap.createBitmap(bmp.getWidth(), bmp.getHeight(), bmp.getConfig());
         Canvas canvas = new Canvas(bmpWithBorder);
-        canvas.drawColor(Color.BLACK);
-        canvas.drawBitmap(bmp, borderSize, borderSize, null);
+        canvas.drawBitmap(bmp, 0,0, null);
+        Paint paint = new Paint();
+        paint.setColor(Color.BLACK);
+        paint.setStrokeWidth(3);
+        paint.setStyle(Paint.Style.STROKE);
+        drawRectangle(canvas, paint, 1,1,bmp.getWidth() - 2,  bmp.getHeight() - 2);
         return bmpWithBorder;
+    }
+
+    public static void drawRectangle(Canvas canvas,Paint paint,float startX,float startY, float endX, float endY)
+    {
+        float minX = startX;
+        float minY = startY;
+        float maxX = endX;
+        float maxY = endY;
+        if(minX > maxX)
+        {
+            minX = endX;
+            maxX = startX;
+        }
+        if(minY > maxY)
+        {
+            minY = endY;
+            maxY = startY;
+        }
+        RectF rectangle = new RectF(minX,minY,maxX,maxY);
+        canvas.drawRect(rectangle, paint);
     }
 
     public void makeInteractable() {
@@ -167,13 +185,30 @@ public class GameScreen extends AppCompatActivity {
                 });
             }
         }
-        board[emptyRowNum][emptyColNum].setVisibility(View.INVISIBLE); //set to empty somehow
+        //board[emptyRowNum][emptyColNum].setVisibility(View.INVISIBLE); //set to empty somehow
+        Bitmap bitmap = generateBlankImageWithColor(tableWidth / rowColLimit, tableWidth / rowColLimit, Color.TRANSPARENT);
+        board[emptyRowNum][emptyColNum].setImageBitmap(bitmap);
+    }
+
+    public static Bitmap generateBlankImageWithColor(int width, int height,int color)
+    {
+        Bitmap cs = null;
+        cs = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(cs);
+
+        Paint paint = new Paint();
+        paint.setColor(color);
+        paint.setStyle(Paint.Style.FILL);
+
+        canvas.drawRect(0, 0,width, height, paint);
+
+        return cs;
     }
 
     public void movePiece(View v, int row, int col) {
         Bitmap bm = loadBitmapFromView(v);
         board[emptyRowNum][emptyColNum].setImageBitmap(bm);
-        board[emptyRowNum][emptyColNum].setVisibility(View.VISIBLE);
+        //board[emptyRowNum][emptyColNum].setVisibility(View.VISIBLE);
 
         int temp = scrambledBoard[emptyRowNum][emptyColNum];
         scrambledBoard[emptyRowNum][emptyColNum] = scrambledBoard[row][col];
@@ -182,7 +217,14 @@ public class GameScreen extends AppCompatActivity {
         emptyRowNum = row;
         emptyColNum = col;
 
+        /*
         board[emptyRowNum][emptyColNum].setVisibility(View.INVISIBLE);
+        int[] colors = {0,0,0};
+        Bitmap bitmap = Bitmap.createBitmap(colors, tableWidth / rowColLimit, tableWidth / rowColLimit, ARGB_8888);
+        board[emptyRowNum][emptyColNum].setImageBitmap(bitmap);
+        */
+        Bitmap bitmap = generateBlankImageWithColor(tableWidth / rowColLimit, tableWidth / rowColLimit, Color.TRANSPARENT);
+        board[emptyRowNum][emptyColNum].setImageBitmap(bitmap);
     }
 
     public void movePiece(int row, int col) {
@@ -222,7 +264,7 @@ public class GameScreen extends AppCompatActivity {
 
     public Bitmap centerCrop(Bitmap srcBmp) {
         Bitmap dstBmp = null;
-        if (srcBmp.getWidth() >= srcBmp.getHeight()){
+        if (srcBmp.getWidth() >= srcBmp.getHeight()) {
             dstBmp = Bitmap.createBitmap(srcBmp, srcBmp.getWidth()/2 - srcBmp.getHeight()/2,
                     0, srcBmp.getHeight(), srcBmp.getHeight());
         } else {
@@ -235,7 +277,7 @@ public class GameScreen extends AppCompatActivity {
     public static Bitmap loadBitmapFromView(View v) {
         int width = v.getWidth();
         int height = v.getHeight();
-        Bitmap b = Bitmap.createBitmap( width, height, Bitmap.Config.ARGB_8888);
+        Bitmap b = Bitmap.createBitmap( width, height, ARGB_8888);
         Canvas c = new Canvas(b);
         v.layout(v.getLeft(), v.getTop(), v.getRight(), v.getBottom());
         v.draw(c);
@@ -283,8 +325,9 @@ public class GameScreen extends AppCompatActivity {
     public void generateSolvablePuzzle() {
         int count = 0;
         setInitialBoard();
+        int shuffle = numToShuffle();
 
-        while (count < 500) {
+        while (count < shuffle) {
             for (int i = 0; i < rowColLimit; i++) {
                 for (int j = 0; j < rowColLimit; j++) {
                     if (findAllMoveablePieces(i, j)) {
@@ -302,4 +345,21 @@ public class GameScreen extends AppCompatActivity {
     }
 
 
+    public int numToShuffle() {
+        if (pieceNum == 4) {
+            return 10;
+        } else if (pieceNum == 9) {
+            return 70;
+        } else if (pieceNum == 25) {
+            return 100;
+        } else if (pieceNum == 36) {
+            return 200;
+        } else if (pieceNum == 49) {
+            return 300;
+        } else if (pieceNum == 64) {
+            return 400;
+        } else if (pieceNum == 81) {
+            return 500;
+        } else return 650;
+    }
 }

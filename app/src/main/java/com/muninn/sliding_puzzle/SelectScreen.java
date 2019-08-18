@@ -197,6 +197,9 @@ public class SelectScreen extends AppCompatActivity {
                         ioe.printStackTrace();
                     }
 
+                    setContentView(R.layout.activity_select_screen);
+                    screen.setImageBitmap(bitmap);
+
                     Intent intent = new Intent(this, GameScreen.class);
                     intent.putExtra("rowColNumber", pieceNum);
                     intent.putExtra("movedPic", fileName);

@@ -8,8 +8,8 @@
 
     <ImageView
         android:id="@+id/backgroundPurple"
-        android:layout_width="425dp"
-        android:layout_height="748dp"
+        android:layout_width="417dp"
+        android:layout_height="738dp"
         android:layout_marginStart="8dp"
         android:layout_marginLeft="8dp"
         android:layout_marginTop="8dp"
@@ -56,18 +56,24 @@
         app:layout_constraintTop_toTopOf="@+id/barTop"
         app:layout_constraintVertical_bias="0.48" />
 
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/transparent" >
+
     <TableLayout
         android:id="@+id/tableLO"
-        android:layout_width="375dp"
-        android:layout_height="375dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginBottom="8dp"
+        android:layout_centerInParent="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:gravity="center_horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/backgroundPurple"
-        app:layout_constraintHorizontal_bias="0.571"
-        app:layout_constraintStart_toStartOf="@+id/backgroundPurple"
-        app:layout_constraintTop_toTopOf="parent"></TableLayout>
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.51"
+        app:layout_constraintVertical_bias="0.306"/>
+
+    </RelativeLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
